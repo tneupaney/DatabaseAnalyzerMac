@@ -1,5 +1,4 @@
 import SwiftUI
-import GRDB
 
 struct SQLEditorView: View {
     let analyzer: SQLiteAnalyzer
@@ -18,7 +17,7 @@ struct SQLEditorView: View {
     @State private var saveQueryName: String = ""
     
     var availableShards: [String] {
-        analyzer.dbQueues.keys.sorted()
+        analyzer.availableShards
     }
     
     var body: some View {
@@ -270,7 +269,291 @@ struct SQLEditorView: View {
         for result in results {
             let row = headers.map { key in
                 let value = result.columns[key] ?? ""
-                return "\"\(value)\""
+                return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+            }.joined(separator: ",")
+            csvContent += row + "\n"
+        }
+        
+        return csvContent
+    }
+    
+    private func loadSavedQueries() {
+        if let data = UserDefaults.standard.data(forKey: "SavedQueries"),
+           let queries = try? JSONDecoder().decode([SavedQuery].self, from: data) {
+            savedQueries = queries
+        }
+    }
+    
+    private func saveSavedQueries() {
+        if let data = try? JSONEncoder().encode(savedQueries) {
+            UserDefaults.standard.set(data, forKey: "SavedQueries")
+        }
+    }
+    
+    private func loadQueryHistory() {
+        if let data = UserDefaults.standard.data(forKey: "QueryHistory"),
+           let history = try? JSONDecoder().decode([HistoryItem].self, from: data) {
+            queryHistory = history
+        }
+    }
+    
+    private func saveQueryHistory() {
+        if let data = try? JSONEncoder().encode(queryHistory) {
+            UserDefaults.standard.set(data, forKey: "QueryHistory")
+        }
+    }
+}
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Toolbar
+                HStack {
+                    // Shard selection
+                    HStack {
+                        Text("Database:")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        Picker("Shard", selection: $selectedShard) {
+                            ForEach(availableShards, id: \.self) { shard in
+                                Text(shard).tag(shard)
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                        .frame(width: 120)
+                    }
+                    
+                    Spacer()
+                    
+                    // Action buttons
+                    HStack(spacing: 12) {
+                        Button {
+                            showHistory.toggle()
+                        } label: {
+                            Image(systemName: "clock")
+                            Text("History")
+                        }
+                        .foregroundColor(.blue)
+                        
+                        Button {
+                            showSavedQueries.toggle()
+                        } label: {
+                            Image(systemName: "bookmark")
+                            Text("Saved")
+                        }
+                        .foregroundColor(.blue)
+                        
+                        Button {
+                            showSaveDialog = true
+                        } label: {
+                            Image(systemName: "square.and.arrow.down")
+                            Text("Save")
+                        }
+                        .foregroundColor(.blue)
+                        .disabled(sqlQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        
+                        Button {
+                            executeQuery()
+                        } label: {
+                            HStack {
+                                if isExecuting {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                } else {
+                                    Image(systemName: "play.fill")
+                                }
+                                Text("Execute")
+                            }
+                        }
+                        .disabled(isExecuting || sqlQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || selectedShard.isEmpty)
+                        .buttonStyle(.borderedProminent)
+                        .keyboardShortcut("r", modifiers: .command)
+                    }
+                }
+                .padding()
+                .background(Color(.controlBackgroundColor))
+                .border(Color(.separatorColor), width: 1)
+                
+                // SQL Editor
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        Text("SQL Query")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        if executionTime > 0 {
+                            Text("Executed in \(String(format: "%.3f", executionTime))s")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top)
+                    
+                    SQLCodeEditor(text: $sqlQuery)
+                        .frame(minHeight: 200)
+                        .background(Color(.textBackgroundColor))
+                        .border(Color(.separatorColor), width: 1)
+                }
+                
+                // Results section
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack {
+                        Text("Results")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        if !queryResults.isEmpty {
+                            Text("(\(queryResults.count) rows)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        if !queryResults.isEmpty {
+                            Button("Export CSV") {
+                                exportResults()
+                            }
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top)
+                    
+                    if let error = executionError {
+                        ErrorResultView(error: error)
+                    } else if queryResults.isEmpty && !isExecuting {
+                        EmptyResultView()
+                    } else {
+                        QueryResultsView(results: queryResults)
+                    }
+                }
+                .frame(maxHeight: .infinity)
+            }
+        }
+        .navigationTitle("SQL Editor")
+        .onAppear {
+            if selectedShard.isEmpty && !availableShards.isEmpty {
+                selectedShard = availableShards.first!
+            }
+            loadSavedQueries()
+            loadQueryHistory()
+        }
+        .sheet(isPresented: $showHistory) {
+            QueryHistoryView(history: queryHistory, onSelect: { query in
+                sqlQuery = query.sql
+                showHistory = false
+            })
+        }
+        .sheet(isPresented: $showSavedQueries) {
+            SavedQueriesView(savedQueries: savedQueries, onSelect: { query in
+                sqlQuery = query.sql
+                showSavedQueries = false
+            }, onDelete: { query in
+                deleteSavedQuery(query)
+            })
+        }
+        .alert("Save Query", isPresented: $showSaveDialog) {
+            TextField("Query Name", text: $saveQueryName)
+            Button("Save") {
+                saveQuery()
+            }
+            Button("Cancel", role: .cancel) { }
+        }
+    }
+    
+    private func executeQuery() {
+        guard !selectedShard.isEmpty, !sqlQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        
+        isExecuting = true
+        executionError = nil
+        queryResults = []
+        
+        let startTime = Date()
+        
+        Task {
+            do {
+                let results = try await analyzer.executeQuery(sqlQuery, onShard: selectedShard)
+                
+                DispatchQueue.main.async {
+                    self.executionTime = Date().timeIntervalSince(startTime)
+                    self.queryResults = results
+                    self.isExecuting = false
+                    
+                    // Add to history
+                    let historyItem = HistoryItem(
+                        sql: self.sqlQuery,
+                        timestamp: Date(),
+                        shard: self.selectedShard,
+                        executionTime: self.executionTime,
+                        rowCount: results.count
+                    )
+                    self.queryHistory.insert(historyItem, at: 0)
+                    if self.queryHistory.count > 50 {
+                        self.queryHistory.removeLast()
+                    }
+                    self.saveQueryHistory()
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.executionError = error.localizedDescription
+                    self.isExecuting = false
+                }
+            }
+        }
+    }
+    
+    private func saveQuery() {
+        let query = SavedQuery(
+            id: UUID(),
+            name: saveQueryName,
+            sql: sqlQuery,
+            createdAt: Date()
+        )
+        savedQueries.append(query)
+        saveSavedQueries()
+        saveQueryName = ""
+    }
+    
+    private func deleteSavedQuery(_ query: SavedQuery) {
+        savedQueries.removeAll { $0.id == query.id }
+        saveSavedQueries()
+    }
+    
+    private func exportResults() {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.commaSeparatedText]
+        panel.nameFieldStringValue = "query_results.csv"
+        
+        if panel.runModal() == .OK {
+            if let url = panel.url {
+                do {
+                    let csvContent = generateCSV(from: queryResults)
+                    try csvContent.write(to: url, atomically: true, encoding: .utf8)
+                } catch {
+                    print("Error saving CSV: \(error)")
+                }
+            }
+        }
+    }
+    
+    private func generateCSV(from results: [QueryResult]) -> String {
+        guard !results.isEmpty else { return "" }
+        
+        // Headers
+        let headers = results.first?.columns.keys.sorted() ?? []
+        var csvContent = headers.joined(separator: ",") + "\n"
+        
+        // Data rows
+        for result in results {
+            let row = headers.map { key in
+                let value = result.columns[key] ?? ""
+                return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
             }.joined(separator: ",")
             csvContent += row + "\n"
         }

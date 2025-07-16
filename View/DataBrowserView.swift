@@ -303,22 +303,23 @@ struct DataBrowserView: View {
                 Task {
                     do {
                         // Export all data, not just current page
-                        var exportQuery = "SELECT * FROM \"\(selectedTable)\""
+                        var exportQueryString = "SELECT * FROM \"\(selectedTable)\""
                         
                         if !searchText.isEmpty {
+                            let escapedSearchText = searchText.replacingOccurrences(of: "'", with: "''")
                             let searchConditions = tableColumns.compactMap { column in
                                 if column.type.uppercased().contains("TEXT") || column.type.uppercased().contains("VARCHAR") {
-                                    return "\"\(column.name)\" LIKE '%\(searchText)%'"
+                                    return "\"\(column.name)\" LIKE '%\(escapedSearchText)%'"
                                 }
                                 return nil
                             }
                             
                             if !searchConditions.isEmpty {
-                                exportQuery += " WHERE " + searchConditions.joined(separator: " OR ")
+                                exportQueryString += " WHERE " + searchConditions.joined(separator: " OR ")
                             }
                         }
                         
-                        let allData = try await analyzer.executeQuery(exportQuery, onShard: selectedShard)
+                        let allData = try await analyzer.executeQuery(exportQueryString, onShard: selectedShard)
                         let csvContent = generateCSV(from: allData)
                         
                         try csvContent.write(to: url, atomically: true, encoding: .utf8)
@@ -341,7 +342,7 @@ struct DataBrowserView: View {
         for result in results {
             let row = headers.map { key in
                 let value = result.columns[key] ?? ""
-                return "\"\(value.replacingOccurrences(of: "\"", with: "\"\"\"))\""
+                return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
             }.joined(separator: ",")
             csvContent += row + "\n"
         }

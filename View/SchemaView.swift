@@ -166,7 +166,7 @@ struct TableDetailView: View {
                             .fontWeight(.semibold)
                         
                         LazyVStack(spacing: 8) {
-                            ForEach(tableInfo.foreignKeys, id: \.constrainedColumns.joined()) { fk in
+                            ForEach(tableInfo.foreignKeys, id: \.self) { fk in
                                 ForeignKeyRowView(foreignKey: fk)
                             }
                         }
@@ -205,6 +205,7 @@ struct ColumnRowView: View {
                     Text(column.name)
                         .font(.headline)
                         .fontWeight(.semibold)
+                        .foregroundColor(.primary)
                     
                     if isPrimaryKey {
                         Image(systemName: "key.fill")
@@ -216,17 +217,23 @@ struct ColumnRowView: View {
                 HStack {
                     Text(column.type)
                         .font(.caption)
+                        .foregroundColor(.primary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
-                        .background(Color.gray.opacity(0.2))
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.blue.opacity(0.2))
+                                .background(Color(.controlBackgroundColor))
+                        )
                         .cornerRadius(4)
                     
                     if !column.nullable {
                         Text("NOT NULL")
                             .font(.caption)
+                            .foregroundColor(.white)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 2)
-                            .background(Color.red.opacity(0.2))
+                            .background(Color.red)
                             .cornerRadius(4)
                     }
                 }
@@ -235,9 +242,16 @@ struct ColumnRowView: View {
             Spacer()
         }
         .padding()
-        .background(Color.white)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.primary.opacity(0.05))
+                .background(Color(.controlBackgroundColor))
+        )
         .cornerRadius(8)
-        .shadow(color: .gray.opacity(0.1), radius: 2, x: 0, y: 1)
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+        )
     }
 }
 
@@ -250,6 +264,7 @@ struct ForeignKeyRowView: View {
                 Text(foreignKey.constrainedColumns.joined(separator: ", "))
                     .font(.headline)
                     .fontWeight(.semibold)
+                    .foregroundColor(.primary)
                 
                 Text("→ \(foreignKey.referredTable).\(foreignKey.referredColumns.joined(separator: ", "))")
                     .font(.subheadline)
@@ -262,7 +277,11 @@ struct ForeignKeyRowView: View {
                 .foregroundColor(.blue)
         }
         .padding()
-        .background(Color.blue.opacity(0.1))
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.blue.opacity(0.1))
+                .background(Color(.controlBackgroundColor))
+        )
         .cornerRadius(8)
     }
 }
@@ -277,13 +296,15 @@ struct IndexRowView: View {
                     Text(index.name)
                         .font(.headline)
                         .fontWeight(.semibold)
+                        .foregroundColor(.primary)
                     
                     if index.unique {
                         Text("UNIQUE")
                             .font(.caption)
+                            .foregroundColor(.white)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.green.opacity(0.2))
+                            .background(Color.green)
                             .cornerRadius(4)
                     }
                 }
@@ -299,7 +320,11 @@ struct IndexRowView: View {
                 .foregroundColor(.orange)
         }
         .padding()
-        .background(Color.orange.opacity(0.1))
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.orange.opacity(0.1))
+                .background(Color(.controlBackgroundColor))
+        )
         .cornerRadius(8)
     }
 }

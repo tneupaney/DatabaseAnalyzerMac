@@ -1,3 +1,11 @@
+//
+//  TriggerPerformanceView.swift
+//  DatabaseAnalyzer
+//
+//  Created by Tushar Neupaney on 16/7/2025.
+//
+
+
 import SwiftUI
 
 struct TriggerPerformanceView: View {

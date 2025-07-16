@@ -1,11 +1,3 @@
-//
-//  StatCard.swift
-//  DatabaseAnalyzer
-//
-//  Created by Tushar Neupaney on 16/7/2025.
-//
-
-
 import SwiftUI
 
 // MARK: - Shared Components
@@ -36,7 +28,11 @@ struct StatCard: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color.white)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.primary.opacity(0.05))
+                .background(Color(.controlBackgroundColor))
+        )
         .cornerRadius(10)
         .shadow(color: .gray.opacity(0.2), radius: 5, x: 0, y: 2)
     }
@@ -53,6 +49,7 @@ struct SummaryRow: View {
             Spacer()
             Text(value)
                 .fontWeight(.semibold)
+                .foregroundColor(.primary)
         }
     }
 }
@@ -89,12 +86,17 @@ struct IssueRowView: View {
             
             Text(issue)
                 .font(.body)
+                .foregroundColor(.primary)
                 .fixedSize(horizontal: false, vertical: true)
             
             Spacer()
         }
         .padding()
-        .background(type.color.opacity(0.1))
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(type.color.opacity(0.1))
+                .background(Color(.controlBackgroundColor))
+        )
         .cornerRadius(10)
         .overlay(
             RoundedRectangle(cornerRadius: 10)
@@ -117,13 +119,19 @@ struct SuggestionRowView: View {
                 Text("SQL Suggestion")
                     .font(.headline)
                     .fontWeight(.semibold)
+                    .foregroundColor(.primary)
                 
                 Text(suggestion)
                     .font(.caption)
                     .monospaced()
                     .textSelection(.enabled)
+                    .foregroundColor(.primary)
                     .padding()
-                    .background(Color.gray.opacity(0.1))
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.primary.opacity(0.05))
+                            .background(Color(.textBackgroundColor))
+                    )
                     .cornerRadius(8)
             }
             
@@ -143,7 +151,11 @@ struct SuggestionRowView: View {
             .buttonStyle(PlainButtonStyle())
         }
         .padding()
-        .background(Color.yellow.opacity(0.1))
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.yellow.opacity(0.1))
+                .background(Color(.controlBackgroundColor))
+        )
         .cornerRadius(10)
         .overlay(
             RoundedRectangle(cornerRadius: 10)
@@ -166,6 +178,7 @@ struct NoIssuesView: View {
                 Text(title)
                     .font(.title2)
                     .fontWeight(.bold)
+                    .foregroundColor(.primary)
                 
                 Text(description)
                     .font(.body)
@@ -174,7 +187,11 @@ struct NoIssuesView: View {
             }
         }
         .padding(40)
-        .background(Color.green.opacity(0.1))
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.green.opacity(0.1))
+                .background(Color(.controlBackgroundColor))
+        )
         .cornerRadius(16)
     }
 }
@@ -197,7 +214,11 @@ struct PerformanceMetric: View {
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 12)
-        .background(color.opacity(0.1))
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(color.opacity(0.1))
+                .background(Color(.controlBackgroundColor))
+        )
         .cornerRadius(8)
     }
 }

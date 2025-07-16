@@ -1,31 +1,14 @@
-//
-//  DatabaseStats.swift
-//  DatabaseAnalyzer
-//
-//  Created by Tushar Neupaney on 16/7/2025.
-//
-
-
 import Foundation
 import GRDB
 
 // Extension to SQLiteAnalyzer for query execution support
 extension SQLiteAnalyzer {
     
-    /// Access to database queues for SQL Editor
-    var dbQueues: [String: DatabaseQueue] {
-        return self.dbQueues
-    }
-    
     /// Execute a custom SQL query on a specific shard
     func executeQuery(_ sql: String, onShard shardName: String) async throws -> [QueryResult] {
-        guard let dbQueue = dbQueues[shardName] else {
-            throw AnalysisError.genericError("Shard '\(shardName)' not found")
-        }
-        
         return try await withCheckedThrowingContinuation { continuation in
             do {
-                try dbQueue.read { db in
+                try dbQueues[shardName]?.read { db in
                     let rows = try Row.fetchAll(db, sql: sql)
                     let results = rows.map { row -> QueryResult in
                         var columns: [String: String] = [:]
@@ -36,7 +19,9 @@ extension SQLiteAnalyzer {
                         return QueryResult(columns: columns)
                     }
                     continuation.resume(returning: results)
-                }
+                } ?? {
+                    continuation.resume(throwing: AnalysisError.genericError("Shard '\(shardName)' not found"))
+                }()
             } catch {
                 continuation.resume(throwing: error)
             }
@@ -72,8 +57,11 @@ extension SQLiteAnalyzer {
     }
     
     /// Format database values for display
-    private func formatValue(_ value: DatabaseValue) -> String {
-        switch value.storage {
+    private func formatValue(_ value: (any DatabaseValueConvertible)?) -> String {
+        guard let value = value else { return "NULL" }
+        
+        let dbValue = value.databaseValue
+        switch dbValue.storage {
         case .null:
             return "NULL"
         case .int64(let int):
@@ -153,6 +141,11 @@ extension SQLiteAnalyzer {
                 pageSize: pageSize
             )
         }
+    }
+    
+    /// Get available shards (database names)
+    var availableShards: [String] {
+        return Array(dbQueues.keys).sorted()
     }
 }
 

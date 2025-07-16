@@ -6,8 +6,50 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		18496ECB2E27BD97002AA6C1 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 18496ECA2E27BD97002AA6C1 /* GRDB */; };
+		18496ECD2E27C306002AA6C1 /* OverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496ECC2E27C306002AA6C1 /* OverviewView.swift */; };
+		18496ECF2E27C354002AA6C1 /* QueryPerformanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496ECE2E27C354002AA6C1 /* QueryPerformanceView.swift */; };
+		18496ED12E27C460002AA6C1 /* SchemaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496ED02E27C460002AA6C1 /* SchemaView.swift */; };
+		18496ED32E27C498002AA6C1 /* IndexAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496ED22E27C498002AA6C1 /* IndexAnalysisView.swift */; };
+		18496ED52E27C4E7002AA6C1 /* SecurityFindingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496ED42E27C4E7002AA6C1 /* SecurityFindingsView.swift */; };
+		18496ED72E27C4F0002AA6C1 /* TriggerPerformanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496ED62E27C4F0002AA6C1 /* TriggerPerformanceView.swift */; };
+		18496ED92E27C4F9002AA6C1 /* RelationshipPerformanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496ED82E27C4F9002AA6C1 /* RelationshipPerformanceView.swift */; };
+		18496EDB2E27C50E002AA6C1 /* DataIntegrityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496EDA2E27C50E002AA6C1 /* DataIntegrityView.swift */; };
+		18496EDF2E27CA35002AA6C1 /* DatabaseSelectionHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496EDE2E27CA35002AA6C1 /* DatabaseSelectionHelper.swift */; };
+		18496EE12E27D11D002AA6C1 /* SQLEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496EE02E27D11D002AA6C1 /* SQLEditorView.swift */; };
+		18496EE32E27D12B002AA6C1 /* QueryHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496EE22E27D12B002AA6C1 /* QueryHistoryView.swift */; };
+		18496EE52E27D160002AA6C1 /* SQLiteAnalyzer+QueryExecution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496EE42E27D160002AA6C1 /* SQLiteAnalyzer+QueryExecution.swift */; };
+		18496EE72E27D232002AA6C1 /* DataBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496EE62E27D232002AA6C1 /* DataBrowserView.swift */; };
+		18496EEB2E27D2D2002AA6C1 /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18496EEA2E27D2D2002AA6C1 /* ExportView.swift */; };
+		187A58EE2E260436007967C1 /* AnalysisModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 187A58ED2E260436007967C1 /* AnalysisModels.swift */; };
+		187A58F02E26044A007967C1 /* SchemaModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 187A58EF2E26044A007967C1 /* SchemaModels.swift */; };
+		187A58F32E26048D007967C1 /* SQLiteAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 187A58F22E26048D007967C1 /* SQLiteAnalyzer.swift */; };
+		187A58F52E2604CD007967C1 /* AnalysisResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 187A58F42E2604CD007967C1 /* AnalysisResultsView.swift */; };
+		187A58F72E2604FA007967C1 /* HTMLReportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 187A58F62E2604FA007967C1 /* HTMLReportGenerator.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
+		18496ECC2E27C306002AA6C1 /* OverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverviewView.swift; sourceTree = "<group>"; };
+		18496ECE2E27C354002AA6C1 /* QueryPerformanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryPerformanceView.swift; sourceTree = "<group>"; };
+		18496ED02E27C460002AA6C1 /* SchemaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaView.swift; sourceTree = "<group>"; };
+		18496ED22E27C498002AA6C1 /* IndexAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndexAnalysisView.swift; sourceTree = "<group>"; };
+		18496ED42E27C4E7002AA6C1 /* SecurityFindingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityFindingsView.swift; sourceTree = "<group>"; };
+		18496ED62E27C4F0002AA6C1 /* TriggerPerformanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TriggerPerformanceView.swift; sourceTree = "<group>"; };
+		18496ED82E27C4F9002AA6C1 /* RelationshipPerformanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelationshipPerformanceView.swift; sourceTree = "<group>"; };
+		18496EDA2E27C50E002AA6C1 /* DataIntegrityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataIntegrityView.swift; sourceTree = "<group>"; };
+		18496EDE2E27CA35002AA6C1 /* DatabaseSelectionHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseSelectionHelper.swift; sourceTree = "<group>"; };
+		18496EE02E27D11D002AA6C1 /* SQLEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLEditorView.swift; sourceTree = "<group>"; };
+		18496EE22E27D12B002AA6C1 /* QueryHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryHistoryView.swift; sourceTree = "<group>"; };
+		18496EE42E27D160002AA6C1 /* SQLiteAnalyzer+QueryExecution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SQLiteAnalyzer+QueryExecution.swift"; sourceTree = "<group>"; };
+		18496EE62E27D232002AA6C1 /* DataBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataBrowserView.swift; sourceTree = "<group>"; };
+		18496EEA2E27D2D2002AA6C1 /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
 		187A58D32E2602B4007967C1 /* DatabaseAnalyzer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DatabaseAnalyzer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		187A58ED2E260436007967C1 /* AnalysisModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisModels.swift; sourceTree = "<group>"; };
+		187A58EF2E26044A007967C1 /* SchemaModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaModels.swift; sourceTree = "<group>"; };
+		187A58F22E26048D007967C1 /* SQLiteAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteAnalyzer.swift; sourceTree = "<group>"; };
+		187A58F42E2604CD007967C1 /* AnalysisResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisResultsView.swift; sourceTree = "<group>"; };
+		187A58F62E2604FA007967C1 /* HTMLReportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLReportGenerator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -23,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				18496ECB2E27BD97002AA6C1 /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -32,6 +75,9 @@
 		187A58CA2E2602B4007967C1 = {
 			isa = PBXGroup;
 			children = (
+				187A58F82E2608A6007967C1 /* View */,
+				187A58F12E260477007967C1 /* Services */,
+				187A58EB2E2603DB007967C1 /* Models */,
 				187A58D52E2602B4007967C1 /* DatabaseAnalyzer */,
 				187A58D42E2602B4007967C1 /* Products */,
 			);
@@ -43,6 +89,46 @@
 				187A58D32E2602B4007967C1 /* DatabaseAnalyzer.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		187A58EB2E2603DB007967C1 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				187A58ED2E260436007967C1 /* AnalysisModels.swift */,
+				187A58EF2E26044A007967C1 /* SchemaModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		187A58F12E260477007967C1 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				18496EE42E27D160002AA6C1 /* SQLiteAnalyzer+QueryExecution.swift */,
+				187A58F22E26048D007967C1 /* SQLiteAnalyzer.swift */,
+				187A58F62E2604FA007967C1 /* HTMLReportGenerator.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		187A58F82E2608A6007967C1 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				18496EEA2E27D2D2002AA6C1 /* ExportView.swift */,
+				18496EE62E27D232002AA6C1 /* DataBrowserView.swift */,
+				18496EE22E27D12B002AA6C1 /* QueryHistoryView.swift */,
+				18496EE02E27D11D002AA6C1 /* SQLEditorView.swift */,
+				18496EDA2E27C50E002AA6C1 /* DataIntegrityView.swift */,
+				18496ED82E27C4F9002AA6C1 /* RelationshipPerformanceView.swift */,
+				18496ED62E27C4F0002AA6C1 /* TriggerPerformanceView.swift */,
+				18496ED42E27C4E7002AA6C1 /* SecurityFindingsView.swift */,
+				18496ED22E27C498002AA6C1 /* IndexAnalysisView.swift */,
+				18496EDE2E27CA35002AA6C1 /* DatabaseSelectionHelper.swift */,
+				18496ED02E27C460002AA6C1 /* SchemaView.swift */,
+				18496ECE2E27C354002AA6C1 /* QueryPerformanceView.swift */,
+				187A58F42E2604CD007967C1 /* AnalysisResultsView.swift */,
+				18496ECC2E27C306002AA6C1 /* OverviewView.swift */,
+			);
+			path = View;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -65,6 +151,7 @@
 			);
 			name = DatabaseAnalyzer;
 			packageProductDependencies = (
+				18496ECA2E27BD97002AA6C1 /* GRDB */,
 			);
 			productName = DatabaseAnalyzer;
 			productReference = 187A58D32E2602B4007967C1 /* DatabaseAnalyzer.app */;
@@ -94,6 +181,9 @@
 			);
 			mainGroup = 187A58CA2E2602B4007967C1;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				18496EC92E27BD97002AA6C1 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 187A58D42E2602B4007967C1 /* Products */;
 			projectDirPath = "";
@@ -119,6 +209,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				18496EEB2E27D2D2002AA6C1 /* ExportView.swift in Sources */,
+				18496EE72E27D232002AA6C1 /* DataBrowserView.swift in Sources */,
+				187A58EE2E260436007967C1 /* AnalysisModels.swift in Sources */,
+				18496ED12E27C460002AA6C1 /* SchemaView.swift in Sources */,
+				18496EDB2E27C50E002AA6C1 /* DataIntegrityView.swift in Sources */,
+				187A58F02E26044A007967C1 /* SchemaModels.swift in Sources */,
+				18496EE52E27D160002AA6C1 /* SQLiteAnalyzer+QueryExecution.swift in Sources */,
+				18496ECF2E27C354002AA6C1 /* QueryPerformanceView.swift in Sources */,
+				18496ED52E27C4E7002AA6C1 /* SecurityFindingsView.swift in Sources */,
+				18496ED32E27C498002AA6C1 /* IndexAnalysisView.swift in Sources */,
+				187A58F32E26048D007967C1 /* SQLiteAnalyzer.swift in Sources */,
+				187A58F72E2604FA007967C1 /* HTMLReportGenerator.swift in Sources */,
+				18496EDF2E27CA35002AA6C1 /* DatabaseSelectionHelper.swift in Sources */,
+				187A58F52E2604CD007967C1 /* AnalysisResultsView.swift in Sources */,
+				18496ED92E27C4F9002AA6C1 /* RelationshipPerformanceView.swift in Sources */,
+				18496EE32E27D12B002AA6C1 /* QueryHistoryView.swift in Sources */,
+				18496EE12E27D11D002AA6C1 /* SQLEditorView.swift in Sources */,
+				18496ECD2E27C306002AA6C1 /* OverviewView.swift in Sources */,
+				18496ED72E27C4F0002AA6C1 /* TriggerPerformanceView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,6 +430,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		18496EC92E27BD97002AA6C1 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		18496ECA2E27BD97002AA6C1 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 18496EC92E27BD97002AA6C1 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 187A58CB2E2602B4007967C1 /* Project object */;
 }

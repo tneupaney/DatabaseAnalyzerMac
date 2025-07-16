@@ -1,5 +1,14 @@
+//
+//  ExportManager.swift
+//  DatabaseAnalyzer
+//
+//  Created by Tushar Neupaney on 16/7/2025.
+//
+
+
 import Foundation
 import AppKit
+import UniformTypeIdentifiers
 
 class ExportManager {
     
@@ -183,7 +192,7 @@ class ExportManager {
         let htmlContent = generateHTMLReport(results)
         
         // Convert HTML to PDF using WebKit
-        let webView = WKWebView()
+        let webView = await(WKWebView())
         await webView.loadHTMLString(htmlContent, baseURL: nil)
         
         // Wait for content to load
