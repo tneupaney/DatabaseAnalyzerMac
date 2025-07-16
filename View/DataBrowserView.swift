@@ -1,4 +1,8 @@
 import SwiftUI
+import GRDB
+#if canImport(AppKit)
+import AppKit
+#endif
 
 struct DataBrowserView: View {
     let analyzer: SQLiteAnalyzer
@@ -21,8 +25,9 @@ struct DataBrowserView: View {
     }
     
     var availableTables: [String] {
-        guard !selectedShard.isEmpty else { return [] }
-        return Array(schema.shards[selectedShard]?.tables.keys ?? []).sorted()
+        guard !selectedShard.isEmpty,
+              let shardInfo = schema.shards[selectedShard] else { return [] }
+        return Array(shardInfo.tables.keys).sorted()
     }
     
     var tableColumns: [ColumnInfo] {
@@ -221,7 +226,12 @@ struct DataBrowserView: View {
     }
     
     private func loadTableData() {
-        guard !selectedShard.isEmpty, !selectedTable.isEmpty else { return }
+        guard !selectedShard.isEmpty, !selectedTable.isEmpty else {
+            print("DEBUG: Cannot load data - missing shard or table")
+            return
+        }
+        
+        print("DEBUG: Loading data for table '\(selectedTable)' in shard '\(selectedShard)'")
         
         isLoading = true
         errorMessage = nil
@@ -229,7 +239,8 @@ struct DataBrowserView: View {
         Task {
             do {
                 // Build query with pagination, search, and sorting
-                var query = "SELECT * FROM \"\(selectedTable)\""
+                var queryParts: [String] = []
+                queryParts.append("SELECT * FROM \"\(selectedTable)\"")
                 
                 // Add search filter
                 if !searchText.isEmpty {
@@ -241,23 +252,34 @@ struct DataBrowserView: View {
                     }
                     
                     if !searchConditions.isEmpty {
-                        query += " WHERE " + searchConditions.joined(separator: " OR ")
+                        let whereClause = " WHERE "
+                        let conditions = searchConditions.joined(separator: " OR ")
+                        queryParts.append(whereClause)
+                        queryParts.append(conditions)
                     }
                 }
                 
                 // Add sorting
                 if !sortColumn.isEmpty {
-                    query += " ORDER BY \"\(sortColumn)\" \(sortAscending ? "ASC" : "DESC")"
+                    let orderClause = " ORDER BY \"\(sortColumn)\" \(sortAscending ? "ASC" : "DESC")"
+                    queryParts.append(orderClause)
                 }
                 
                 // Add pagination
                 let offset = currentPage * rowsPerPage
-                query += " LIMIT \(rowsPerPage) OFFSET \(offset)"
+                let limitClause = " LIMIT \(rowsPerPage) OFFSET \(offset)"
+                queryParts.append(limitClause)
                 
-                let results = try await analyzer.executeQuery(query, onShard: selectedShard)
+                let query = queryParts.joined()
+                print("DEBUG: Executing query: \(query)")
+                
+                let results = try await executeQuerySafely(query, onShard: selectedShard)
+                print("DEBUG: Query returned \(results.count) rows")
                 
                 // Get total count
-                var countQuery = "SELECT COUNT(*) as total FROM \"\(selectedTable)\""
+                var countQueryParts: [String] = []
+                countQueryParts.append("SELECT COUNT(*) as total FROM \"\(selectedTable)\"")
+                
                 if !searchText.isEmpty {
                     let searchConditions = tableColumns.compactMap { column in
                         if column.type.uppercased().contains("TEXT") || column.type.uppercased().contains("VARCHAR") {
@@ -267,23 +289,88 @@ struct DataBrowserView: View {
                     }
                     
                     if !searchConditions.isEmpty {
-                        countQuery += " WHERE " + searchConditions.joined(separator: " OR ")
+                        let whereClause = " WHERE "
+                        let conditions = searchConditions.joined(separator: " OR ")
+                        countQueryParts.append(whereClause)
+                        countQueryParts.append(conditions)
                     }
                 }
                 
-                let countResults = try await analyzer.executeQuery(countQuery, onShard: selectedShard)
-                let total = Int(countResults.first?.columns["total"] ?? "0") ?? 0
+                let countQuery = countQueryParts.joined()
+                print("DEBUG: Executing count query: \(countQuery)")
                 
-                DispatchQueue.main.async {
+                let countResults = try await executeQuerySafely(countQuery, onShard: selectedShard)
+                print("DEBUG: Count query returned \(countResults.count) results")
+                if let firstCountResult = countResults.first {
+                    print("DEBUG: Count result columns: \(firstCountResult.columns)")
+                }
+                
+                let totalString = countResults.first?.columns["total"] ?? "0"
+                let total = Int(totalString) ?? 0
+                print("DEBUG: Parsed total as: \(total) from string: '\(totalString)'")
+                
+                await MainActor.run {
                     self.tableData = results
                     self.totalRows = total
                     self.isLoading = false
+                    print("DEBUG: UI updated with \(results.count) rows, total: \(total)")
                 }
             } catch {
-                DispatchQueue.main.async {
+                print("DEBUG: Error loading table data: \(error)")
+                await MainActor.run {
                     self.errorMessage = error.localizedDescription
                     self.isLoading = false
                 }
+            }
+        }
+    }
+    
+    private func executeQuerySafely(_ query: String, onShard shard: String) async throws -> [QueryResult] {
+        guard let dbQueue = analyzer.dbQueues[shard] else {
+            throw NSError(domain: "DataBrowser", code: 1, userInfo: [NSLocalizedDescriptionKey: "Shard '\(shard)' not found"])
+        }
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            do {
+                try dbQueue.read { db in
+                    let rows = try Row.fetchAll(db, sql: query)
+                    let results = rows.map { row in
+                        var columns: [String: String] = [:]
+                        for columnName in row.columnNames {
+                            let value = row[columnName]
+                            
+                            // Handle different data types properly
+                            if let stringValue = value as? String {
+                                columns[columnName] = stringValue
+                            } else if let intValue = value as? Int64 {
+                                columns[columnName] = String(intValue)
+                            } else if let intValue = value as? Int {
+                                columns[columnName] = String(intValue)
+                            } else if let doubleValue = value as? Double {
+                                columns[columnName] = String(format: "%.2f", doubleValue)
+                            } else if let boolValue = value as? Bool {
+                                columns[columnName] = boolValue ? "true" : "false"
+                            } else if value == nil {
+                                columns[columnName] = "NULL"
+                            } else {
+                                // For any other type, convert to string without Optional wrapper
+                                let stringValue = String(describing: value)
+                                // Remove Optional() wrapper if present
+                                if stringValue.hasPrefix("Optional(") && stringValue.hasSuffix(")") {
+                                    let startIndex = stringValue.index(stringValue.startIndex, offsetBy: 9)
+                                    let endIndex = stringValue.index(stringValue.endIndex, offsetBy: -1)
+                                    columns[columnName] = String(stringValue[startIndex..<endIndex])
+                                } else {
+                                    columns[columnName] = stringValue
+                                }
+                            }
+                        }
+                        return QueryResult(columns: columns)
+                    }
+                    continuation.resume(returning: results)
+                }
+            } catch {
+                continuation.resume(throwing: error)
             }
         }
     }
@@ -294,6 +381,7 @@ struct DataBrowserView: View {
     }
     
     private func exportTableData() {
+        #if os(macOS)
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.commaSeparatedText]
         panel.nameFieldStringValue = "\(selectedTable)_data.csv"
@@ -303,7 +391,8 @@ struct DataBrowserView: View {
                 Task {
                     do {
                         // Export all data, not just current page
-                        var exportQueryString = "SELECT * FROM \"\(selectedTable)\""
+                        var exportQueryParts: [String] = []
+                        exportQueryParts.append("SELECT * FROM \"\(selectedTable)\"")
                         
                         if !searchText.isEmpty {
                             let escapedSearchText = searchText.replacingOccurrences(of: "'", with: "''")
@@ -315,39 +404,46 @@ struct DataBrowserView: View {
                             }
                             
                             if !searchConditions.isEmpty {
-                                exportQueryString += " WHERE " + searchConditions.joined(separator: " OR ")
+                                let whereClause = " WHERE "
+                                let conditions = searchConditions.joined(separator: " OR ")
+                                exportQueryParts.append(whereClause)
+                                exportQueryParts.append(conditions)
                             }
                         }
                         
-                        let allData = try await analyzer.executeQuery(exportQueryString, onShard: selectedShard)
+                        let exportQuery = exportQueryParts.joined()
+                        let allData = try await executeQuerySafely(exportQuery, onShard: selectedShard)
                         let csvContent = generateCSV(from: allData)
                         
                         try csvContent.write(to: url, atomically: true, encoding: .utf8)
                     } catch {
-                        DispatchQueue.main.async {
+                        await MainActor.run {
                             self.errorMessage = "Export failed: \(error.localizedDescription)"
                         }
                     }
                 }
             }
         }
+        #endif
     }
     
     private func generateCSV(from results: [QueryResult]) -> String {
         guard !results.isEmpty else { return "" }
         
         let headers = tableColumns.map { $0.name }
-        var csvContent = headers.joined(separator: ",") + "\n"
+        var csvLines: [String] = []
+        csvLines.append(headers.joined(separator: ","))
         
         for result in results {
-            let row = headers.map { key in
+            let rowValues = headers.map { key -> String in
                 let value = result.columns[key] ?? ""
                 return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
-            }.joined(separator: ",")
-            csvContent += row + "\n"
+            }
+            let row = rowValues.joined(separator: ",")
+            csvLines.append(row)
         }
         
-        return csvContent
+        return csvLines.joined(separator: "\n")
     }
 }
 
@@ -362,50 +458,77 @@ struct TableDataView: View {
     
     var body: some View {
         ScrollView([.horizontal, .vertical]) {
-            LazyVGrid(columns: gridColumns, spacing: 1) {
+            LazyVStack(spacing: 0) {
                 // Headers
-                ForEach(columns, id: \.name) { column in
-                    Button {
-                        onSort(column.name)
-                    } label: {
-                        HStack {
-                            Text(column.name)
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            if sortColumn == column.name {
-                                Image(systemName: sortAscending ? "chevron.up" : "chevron.down")
-                                    .font(.caption)
-                                    .foregroundColor(.blue)
+                HStack(spacing: 0) {
+                    ForEach(columns, id: \.name) { column in
+                        Button {
+                            onSort(column.name)
+                        } label: {
+                            HStack {
+                                Text(column.name)
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                    .lineLimit(1)
+                                
+                                if sortColumn == column.name {
+                                    Image(systemName: sortAscending ? "chevron.up" : "chevron.down")
+                                        .font(.caption)
+                                        .foregroundColor(.blue)
+                                }
+                                
+                                Spacer(minLength: 0)
                             }
+                            .padding(8)
+                            .frame(minWidth: 320, maxWidth: .infinity, alignment: .leading)
+                            .background(Color(.controlBackgroundColor))
                         }
-                        .padding(8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(.controlBackgroundColor))
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Column separator
+                        if column.name != columns.last?.name {
+                            Rectangle()
+                                .fill(Color(.separatorColor))
+                                .frame(width: 1)
+                        }
                     }
-                    .buttonStyle(PlainButtonStyle())
                 }
+                .frame(maxWidth: .infinity)
                 
                 // Data rows
                 ForEach(Array(data.enumerated()), id: \.offset) { index, result in
-                    ForEach(columns, id: \.name) { column in
-                        Text(result.columns[column.name] ?? "")
-                            .font(.body)
-                            .foregroundColor(.primary)
-                            .padding(8)
-                            .background(index % 2 == 0 ? Color(.controlBackgroundColor).opacity(0.3) : Color.clear)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                    HStack(spacing: 0) {
+                        ForEach(columns, id: \.name) { column in
+                            Text(result.columns[column.name] ?? "NULL")
+                                .font(.body)
+                                .foregroundColor(.primary)
+                                .padding(8)
+                                .frame(minWidth: 120, maxWidth: .infinity, alignment: .leading)
+                                .background(index % 2 == 0 ? Color(.controlBackgroundColor).opacity(0.2) : Color.clear)
+                                .lineLimit(1)
+                            
+                            // Column separator
+                            if column.name != columns.last?.name {
+                                Rectangle()
+                                    .fill(Color(.separatorColor))
+                                    .frame(width: 1)
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    
+                    // Row separator
+                    if index < data.count - 1 {
+                        Rectangle()
+                            .fill(Color(.separatorColor).opacity(0.3))
+                            .frame(height: 1)
                     }
                 }
             }
+            .frame(maxWidth: .infinity)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.textBackgroundColor))
-    }
-    
-    private var gridColumns: [GridItem] {
-        columns.map { _ in
-            GridItem(.flexible(minimum: 120), spacing: 1)
-        }
     }
 }
 

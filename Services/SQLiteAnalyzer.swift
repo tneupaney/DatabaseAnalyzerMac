@@ -24,7 +24,7 @@ enum AnalysisError: Error, LocalizedError {
 
 class SQLiteAnalyzer {
     private var dbPaths: [String]
-    internal var dbQueues: [String: DatabaseQueue] = [:] // Store database queues by shard name
+    private(set) var dbQueues: [String: DatabaseQueue] = [:] // Store database queues by shard name
 
     init(dbPaths: [String]) {
         self.dbPaths = dbPaths
